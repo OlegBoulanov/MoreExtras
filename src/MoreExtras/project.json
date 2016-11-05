@@ -5,7 +5,11 @@
     "emitEntryPoint": true
   },
   "dependencies": {
-
+    "AWSSDK.Core": "3.3.3",
+    "AWSSDK.S3": "3.3.1",
+    "AWSSDK.SQS": "3.3.0.1",
+    "Telegram.Bot": "10.4.0",
+    "MongoDB.Driver": "2.3.0"
   },
   "frameworks": {
     "netcoreapp1.0": {
