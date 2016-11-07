@@ -1,0 +1,46 @@
+Grammars (
+
+	DAY.DOB(
+		( _FIRST.DOB ),
+		( _SECOND.DOB ),
+		( _THIRD.DOB ),
+
+		( _SEVENTEENTH.DOB ),
+		( _EIGHTEENTH.DOB ),
+		( _NINETEENTH.DOB ),
+
+		( _THIRTYFIRST.DOB )
+	),
+
+	_EIGHTEENTH.DOB(
+		:( value( day( 18 ), number( 18 ), str( eighteen ) ) ) ( eighteen.DOB ),
+		:( value( day( 18 ), number( 18 ), str( eighteen ) ) ) ( [the.DOB], eighteenth.DOB ),
+		:( value( day( 18 ), number( 18 ), str( eighteen ) ) ) ( one.DOB, eight.DOB ),
+		:( value( day( 18 ), number( 18 ), str( eighteen ) ) ) ( DTMF_1, DTMF_8 )
+	),
+
+	_YES_YOU_ARE.IBD(
+		:( value( inbound( YES ) ) ) ( [UH], _YES_YOU_ARE.IBD_@063 )
+	),
+	_YES_YOU_ARE.IBD_@063(
+		( YES_IB.IBD ),
+		( YES_IB.IBD, [you.IBD], are.IBD ),
+		( YES_IT_IS.IBD, [NAME.IBD] ),
+		( [YES_IB.IBD], _YES_IT_IS_GN.IBD_@067_@175 )
+	),
+	_YES_YOU_MAY(
+		:( value( yesno( YES ) ) ) ( [UH], _YES_YOU_MAY_@090 )
+	),
+	_YES_YOU_MAY_@090(
+		( YES_POLITE ),
+		( YES_YOU_MAY ),
+		( YES_GO_AHEAD )
+	),
+	_ZERO.DOB(
+		:( value( year( 0 ), number( 0 ), str( zero ) ) ) ( ZERO.DOB ),
+		:( value( year( 0 ), number( 0 ), str( zero ) ) ) ( DTMF_0 )
+	),
+	_ZERO_DTMF.DOB(
+		:( value( year( 0 ), number( 0 ), str( zero ) ) ) ( DTMF_0 )
+	)
+)
