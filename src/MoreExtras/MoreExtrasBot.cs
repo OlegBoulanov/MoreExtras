@@ -22,6 +22,8 @@ using Amazon.SQS;
 using MongoDB;
 using MongoDB.Driver;
 
+using MoreExtras.Util;
+
 namespace MoreExtras
 {
     public class MoreExtrasBot
@@ -90,16 +92,32 @@ namespace MoreExtras
                 switchPmText: $"Go chat with {BotUser?.FirstName ?? "the bot"}"
             );
         }
-        async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
+        void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
         {
             var message = messageEventArgs.Message;
             if (message != null)
                 switch (message.Type)
                 {
                     case MessageType.TextMessage:
-                        await BotClient.SendTextMessageAsync(message.Chat.Id, $"Why did you say '{message.Text}'?");
+                        if (message.Text.IsNotNullOrEmpty()) BotOnTextMessageReceived(message);
                         break;
                 }
+        }
+        async void BotOnTextMessageReceived(Message message)
+        {
+            //Debug.Assert(0 < message.Text.Length);
+            switch (message.Text[0])
+            {
+                case '/':
+                    if(1 < message.Text.Length) BotOnCommand(message.Text.Substring(1));
+                    break;
+            }
+            await BotClient.SendTextMessageAsync(message.Chat.Id, $"Why did you say '{message.Text}'?");
+        }
+
+        async void BotOnCommand(string cmd)
+        {
+
         }
     }
 }
