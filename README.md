@@ -9,4 +9,10 @@ Wrong configuration files in .vscode folder:
 Adding FluentAssertions seem to be a breeze. 
 Although, running in VS Code, it only indicates pass/fail, with no error messages.
 Running it with dotnet test displays them all in full beauty (or none, if tests passed)
-... hmm, xunit output is the same?
+... hmm, xunit output seem to be the same in VS Code?
+
+Removing .vscode from git:
+- update .gitignore
+- git rm --cached .
+- git push origin master
+Done, easy and clean
