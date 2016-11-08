@@ -1,37 +1,21 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Collections;
-using System.Xml.Serialization;
+using System.Collections.Generic;
 
-namespace Eliza.Net {
-
-	/// <summary>
-	/// Attributed tree class
-	/// </summary>
-	public class AttrTree : ArrayList, IAttrTree {
-		protected string _node;
-		protected bool _opt;
-		protected IAttrTree _attr;
-		public string Node { get { return _node; } set { _node = value; } }
-		public bool Optional { get { return _opt; } set { _opt = value; } }																	    
-		public IAttrTree Attr { get { return _attr; } set { _attr = (AttrTree) value; } }
-		// IAttrTree implementation
-		public AttrTree() {
-			_node = null;
-			_attr = null;
-			_opt = false;
-		}
-		public AttrTree(IAttrTree at) {
-			_node = at.Node;
-			_attr = at.Attr;
-			_opt = at.Optional;
-			foreach(IAttrTree t in at) Add(t);//new AttrTree(t));
-		}
-		public override object Clone() {
-			IAttrTree tc = new AttrTree(_node,Attr!=null?(IAttrTree)Attr.Clone():null,_opt);
-			foreach(IAttrTree t in this) tc.Add((IAttrTree)t.Clone());
-			return tc;
+namespace MoreExtras.Parser
+{
+	public class AttrTree : List<AttrTree>
+	{
+		public string Node { get; set; } = null;
+		public bool IsOptional { get; set; } = false;																    
+		public AttrTree Attributes { get; set; } = null;
+		public AttrTree() {}
+		public AttrTree(AttrTree at) {
+			Node = at.Node;
+			Attributes = at.Attributes;
+			IsOptional = at.IsOptional;
+			foreach(var t in at) Add(t);
 		}
 		public void Read(TextReader t) {
 			Read(t, S_DELIMITERS + C_ATTRIBUTES, S_DELIMITERS);
@@ -39,22 +23,22 @@ namespace Eliza.Net {
 		public void Read(TextReader t, string dn, string da) {
 			ws(t);
 			if(t.Peek() == C_OPEN_OPTIONAL) {
-				_opt = true; t.Read();
-				_node = ReadUntil(t,S_CLOSE_OPTIONAL); ws(t);
+				IsOptional = true; t.Read();
+				Node = ReadUntil(t,S_CLOSE_OPTIONAL); ws(t);
 				if(t.Read() != C_CLOSE_OPTIONAL) 
-					throw new FormatException("'" + C_CLOSE_OPTIONAL + "' expected in " + _node);
+					throw new FormatException("'" + C_CLOSE_OPTIONAL + "' expected in " + Node);
 			} else if(t.Peek() == C_OPTIONAL) {
-				_opt = true; t.Read();
-				_node = ReadUntil(t,dn);
+				IsOptional = true; t.Read();
+				Node = ReadUntil(t,dn);
 			} else {
-				_node = ReadUntil(t,dn);
+				Node = ReadUntil(t,dn);
 			}
 			ws(t);
 			if(t.Peek() == C_ATTRIBUTES) {
 				t.Read();
 				AttrTree attr = new AttrTree();
 				attr.Read(t,dn,da);
-				_attr = attr;
+				Attributes = attr;
 			}
 			if(t.Peek() == C_OPEN) {
 				do {
@@ -64,7 +48,7 @@ namespace Eliza.Net {
 					Add(_tree);
 				} while(t.Peek() == C_SEPARATOR);
 				if(t.Read() != C_CLOSE)
-					throw new FormatException("'" + C_CLOSE + "' expected in " + _node);
+					throw new FormatException("'" + C_CLOSE + "' expected in " + Node);
 			}
 			ws(t);
 		}
@@ -87,22 +71,22 @@ namespace Eliza.Net {
 			Write(t,sp,nl,sp);
 		}
 		protected void Write(TextWriter t, string sp, string nl, string level) {
-			if(_opt) t.Write(S_OPEN_OPTIONAL);
-			if(_node == null) {
-			} else if(needs_quotes(_node)) {
+			if(IsOptional) t.Write(S_OPEN_OPTIONAL);
+			if(Node == null) {
+			} else if(needs_quotes(Node)) {
 				t.Write(C_DOUBLEQUOTE);
-				t.Write(_node);
+				t.Write(Node);
 				t.Write(C_DOUBLEQUOTE);
 			} else {
-				t.Write(_node);
+				t.Write(Node);
 			}
-			if(_opt) t.Write(S_CLOSE_OPTIONAL);
-			if(_attr != null) {
+			if(IsOptional) t.Write(S_CLOSE_OPTIONAL);
+			if(Attributes != null) {
 				t.Write(S_ATTRIBUTES);
-				_attr.Write(t,"","");
+				Attributes.Write(t,"","");
 			}
 			if(Count > 0) {
-				if((_node != null && _node.Length > 0) || _attr != null) t.Write(" ");
+				if((Node != null && Node.Length > 0) || Attributes != null) t.Write(" ");
 				t.Write(S_OPEN);
 				bool f = true;
 				foreach(AttrTree st in this) {
@@ -118,9 +102,7 @@ namespace Eliza.Net {
 				t.Write(S_CLOSE);
 			}
 		}
-
 		static protected void ws(TextReader t) { while((uint)t.Peek() <= ' ') t.Read(); }
-
 		static readonly char [] INNER_SPECIALS = { C_SPACE, C_TAB, C_OPEN, C_CLOSE, C_SEPARATOR, C_ATTRIBUTES };
 		static bool needs_quotes(string s) {
 			if(s.Length == 0) return false;
@@ -157,27 +139,26 @@ namespace Eliza.Net {
 
 		// more useful constructors
 		public AttrTree(TextReader t) { Read(t); }
-		//public AttrTree(string s) : this() { 
-		//	//Read(new StringReader(s)); 
-		//	_node = s;
-		//}
-		public AttrTree(string n, IAttrTree a, bool o, params IAttrTree [] sub) {
-			_node = n;
-			_attr = a;
-			_opt = o;
-			foreach(IAttrTree t in sub) Add(t);
+		public AttrTree(string n, AttrTree a, bool o, params AttrTree [] sub) {
+			Node = n;
+			Attributes = a;
+			IsOptional = o;
+			foreach(AttrTree t in sub) Add(t);
 		}
 		// more stuff
-		public string ToString(string sp) {
+		public string ToString(string sp) 
+		{
 			return ToString(sp,S_NEWLINE);
 		}
-		public string ToString(string sp, string nl) {
+		public string ToString(string sp, string nl) 
+		{
 			StringWriter sw = new StringWriter();
 			Write(sw,sp,nl);
 			return sw.ToString();
 		}
 		// override base method
-		public override string ToString() {
+		public override string ToString() 
+		{
 			return ToString("","");
 		}
 	}

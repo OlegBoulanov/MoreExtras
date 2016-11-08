@@ -22,7 +22,7 @@ using Amazon.SQS;
 using MongoDB;
 using MongoDB.Driver;
 
-using MoreExtras.Util;
+using MoreExtras.Utils;
 
 namespace MoreExtras
 {
@@ -57,9 +57,9 @@ namespace MoreExtras
             mng = new MongoClient();
             var mdb = mng.GetDatabase($"{codeBaseFileName}");
             Console.WriteLine($"Mongo: {mdb.DatabaseNamespace} @ {mng}");
-            //s3 = new AmazonS3Client(awsCredentials.AccessKey, awsCredentials.SecretKey, region);
-            //sqs = new AmazonSQSClient(awsCredentials.AccessKey, awsCredentials.SecretKey, region);
-            //Console.WriteLine($"s3: {s3.ToString()}");
+            s3 = new AmazonS3Client(awsCredentials.AccessKey, awsCredentials.SecretKey, region);
+            sqs = new AmazonSQSClient(awsCredentials.AccessKey, awsCredentials.SecretKey, region);
+            Console.WriteLine($"s3: {s3.ToString()}");
 
             BotClient = new TelegramBotClient(telegramBotToken);
 
@@ -99,7 +99,7 @@ namespace MoreExtras
                 switch (message.Type)
                 {
                     case MessageType.TextMessage:
-                        if (message.Text.IsNotNullOrEmpty()) BotOnTextMessageReceived(message);
+                        if (!message.Text.IsNullOrEmpty()) BotOnTextMessageReceived(message);
                         break;
                 }
         }
@@ -115,7 +115,7 @@ namespace MoreExtras
             await BotClient.SendTextMessageAsync(message.Chat.Id, $"Why did you say '{message.Text}'?");
         }
 
-        async void BotOnCommand(string cmd)
+        void BotOnCommand(string cmd)
         {
 
         }

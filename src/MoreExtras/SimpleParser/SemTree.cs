@@ -1,47 +1,43 @@
 using System;
 using System.IO;
-using System.Text;
-using System.Collections;
-using System.Xml.Serialization;
 
-namespace Eliza.Net
+namespace MoreExtras.Parser
 {
 
-	public class SemTree : AttrTree, ISemTree
+	public class SemTree : AttrTree
 	{
 		public class AttrFormatException : FormatException
 		{
-			public AttrFormatException(IAttrTree attr, IAttrTree cat)
+			public AttrFormatException(AttrTree Attributes, AttrTree cat)
 				: base(cat.ToString())
 			{
 				// find "file" and set Source field
-				IAttrTree file = find(attr, new string[] { Consts.Semantics.FILE });
+				AttrTree file = find(Attributes, new string[] { "file" });
 				if (file != null && file.Count > 0)
 				{
-					IAttrTree tf = ((IAttrTree)file[0]);
+					AttrTree tf = ((AttrTree)file[0]);
 					this.Source = tf.Node;
 					if (tf.Count > 0)
 					{
-						IAttrTree tl = ((IAttrTree)tf[0]);
+						AttrTree tl = ((AttrTree)tf[0]);
 						int line = int.Parse(tl.Node);
-						//						Console.WriteLine("Source: " + Source + ", line: " + line);
 					}
 				}
 			}
 		}
 		// constructors
 		public SemTree() : base() { }
-		public SemTree(string node, IAttrTree attr)
+		public SemTree(string node, AttrTree attributes)
 		{
-			_node = node;
-			_attr = attr;
+			Node = node;
+			Attributes = attributes;
 		}
-		public SemTree(IAttrTree at)
+		public SemTree(AttrTree at)
 		{
-			_node = at.Node;
-			_attr = at.Attr;
-			_opt = at.Optional;
-			foreach (IAttrTree t in at) Add(t);
+			Node = at.Node;
+			Attributes = at.Attributes;
+			IsOptional = at.IsOptional;
+			foreach (var t in at) Add(t);
 		}
 		public SemTree(TextReader t) : base(t) { }
 		// ISemTree implementation
@@ -50,11 +46,11 @@ namespace Eliza.Net
 			string op = null, nv = "";
 			switch (cat)
 			{
-				case Consts.Semantics.Category.NUMBER:
+				case "number":
 					op = null;
 					nv = "0";
 					break;
-				case Consts.Semantics.Category.STRING:
+				case "string":
 					op = " ";
 					nv = null;
 					break;
@@ -67,25 +63,24 @@ namespace Eliza.Net
 		}
 		public string Eval(string cat, string op, string nv, string ld, string rd)
 		{
-			AttrTree attr = (AttrTree)Attr;
-			if (attr != null)
+			if (Attributes != null)
 			{
-				IAttrTree _alias = find(attr, new string[] { Consts.Semantics.ALIAS, cat });
+				AttrTree _alias = find(Attributes, new string[] { Constants.Semantics.ALIAS, cat });
 				if (_alias != null)
 				{
-					if (_alias.Count != 1) throw new AttrFormatException(attr, _alias);
+					if (_alias.Count != 1) throw new AttrFormatException(Attributes, _alias);
 					return Eval(((AttrTree)_alias[0]).Node, op, nv, ld, rd);
 				}
-				IAttrTree _value = find(attr, new string[] { Consts.Semantics.VALUE, cat });
+				AttrTree _value = find(Attributes, new string[] { Constants.Semantics.VALUE, cat });
 				if (_value != null)
 				{
-					if (_value.Count > 1) throw new AttrFormatException(attr, _value);
+					if (_value.Count > 1) throw new AttrFormatException(Attributes, _value);
 					return ((AttrTree)_value[0]).Node;
 				}
-				IAttrTree _oprtr = find(attr, new string[] { Consts.Semantics.OPRTR, cat });
+				AttrTree _oprtr = find(Attributes, new string[] { Constants.Semantics.OPRTR, cat });
 				if (_oprtr != null)
 				{
-					if (_oprtr.Count != 1) throw new AttrFormatException(attr, _oprtr);
+					if (_oprtr.Count != 1) throw new AttrFormatException(Attributes, _oprtr);
 					op = ((AttrTree)_oprtr[0]).Node;
 				}
 			}
@@ -113,13 +108,13 @@ namespace Eliza.Net
 			return ld + v1 + rd;
 		}
 		// helping stuff
-		static protected IAttrTree find(IAttrTree tree, string[] list)
+		static protected AttrTree find(AttrTree tree, string[] list)
 		{
 			return find(tree, list, 0);
 		}
-		static protected IAttrTree find(IAttrTree tree, string[] list, int n)
+		static protected AttrTree find(AttrTree tree, string[] list, int n)
 		{
-			foreach (IAttrTree t in tree)
+			foreach (AttrTree t in tree)
 			{
 				if (t.Node == list[n])
 					return n < list.Length - 1 ? find(t, list, n + 1) : t;

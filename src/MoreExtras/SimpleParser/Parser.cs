@@ -1,39 +1,27 @@
-using System;
-using System.IO;
-using System.Text;
-using System.Collections;
+using System.Collections.Generic;
 
-namespace Eliza.Net
+namespace MoreExtras.Parser
 {
-	public class Parser : IParser
+	public class Parser
 	{
-		// implementation specific
-		protected IDictionary _grammars;
-		protected IDictionary _lexicon;
-		// constructor
-		public Parser()
-		{
-			_grammars = new Hashtable();
-			_lexicon = new Hashtable();
-		}
 		// IParser implementation
-		public IDictionary Grammars { get { return _grammars; } }
-		public IDictionary Lexicon { get { return _lexicon; } }
-		public void Prepare(IAttrTree tree)
+		public Dictionary<string, AttrTree> Grammars { get; protected set; } = new Dictionary<string, AttrTree>();
+		public Dictionary<string, string> Lexicon { get; protected set; } = new Dictionary<string, string>();
+		public void Prepare(AttrTree tree)
 		{
-			_grammars.Clear();
-			foreach (AttrTree g in tree) _grammars.Add(g.Node, g);
+			Grammars.Clear();
+			foreach (AttrTree g in tree) Grammars.Add(g.Node, g);
 			foreach (AttrTree g in tree) ScanLexicon(g);
 		}
-		protected void ScanLexicon(IAttrTree tree)
+		protected void ScanLexicon(AttrTree tree)
 		{
-			foreach (IAttrTree t in tree)
+			foreach (var t in tree)
 			{
 				if (t.Count > 0) ScanLexicon(t);
-				else if (!_grammars.Contains(t.Node) && !_lexicon.Contains(t.Node)) _lexicon.Add(t.Node, null);
+				else if (!Grammars.ContainsKey(t.Node) && !Lexicon.ContainsKey(t.Node)) Lexicon.Add(t.Node, null);
 			}
 		}
-		public ISemTree Parse(IAttrTree g, string[] words)
+		public SemTree Parse(AttrTree g, string[] words)
 		{
 			if (g == null) return null;
 			if (words.Length == 0)
@@ -44,14 +32,14 @@ namespace Eliza.Net
 				return st;
 			}
 			// enum clauses
-			foreach (IAttrTree c in g)
+			foreach (AttrTree c in g)
 			{
-				ISemTree res = new SemTree();
+				SemTree res = new SemTree();
 				res.Node = g.Node;
 				int i_patt = 0;
 				if (_Match(c, 0, words, ref i_patt, ref res))
 				{
-					res.Attr = c.Attr;
+					res.Attributes = c.Attributes;
 					return res;
 				}
 			}
@@ -59,7 +47,7 @@ namespace Eliza.Net
 			return null;
 		}
 
-		protected bool _Match(IAttrTree targ, int i_targ, string[] patt, ref int i_patt, ref ISemTree result)
+		protected bool _Match(AttrTree targ, int i_targ, string[] patt, ref int i_patt, ref SemTree result)
 		{
 			bool tend = i_targ >= targ.Count;
 			bool pend = i_patt >= patt.Length;
@@ -70,15 +58,15 @@ namespace Eliza.Net
 				// the rest must be optional
 				while (tit < targ.Count)
 				{
-					if (!((IAttrTree)targ[tit++]).Optional) return false;
+					if (!((AttrTree)targ[tit++]).IsOptional) return false;
 				}
 				return true;
 			}
-			IAttrTree goal = (IAttrTree)targ[tit++];
-			if (goal.Node == Consts.Grammar.UNIVERSAL)
+			AttrTree goal = (AttrTree)targ[tit++];
+			if (goal.Node == Constants.Grammar.UNIVERSAL)
 			{
 				// consume all words
-				while (i_patt < patt.Length) result.Add(new SemTree(patt[i_patt++], goal.Attr));
+				while (i_patt < patt.Length) result.Add(new SemTree(patt[i_patt++], goal.Attributes));
 				return true;
 			}
 			// word
@@ -88,34 +76,34 @@ namespace Eliza.Net
 				int pit = i_patt + 1;
 				if (_Match(targ, tit, patt, ref pit, ref result))
 				{
-					ISemTree at = new SemTree(word, goal.Attr);
+					SemTree at = new SemTree(word, goal.Attributes);
 					result.Insert(0, at);
 					i_patt = pit;
 					return true;
 				}
 			}
 			// prefer to skip optionals
-			if (goal.Optional && _Match(targ, tit, patt, ref i_patt, ref result)) return true;
+			if (goal.IsOptional && _Match(targ, tit, patt, ref i_patt, ref result)) return true;
 			// find class
-			if (!_grammars.Contains(goal.Node)) return false;
-			IAttrTree cls = (IAttrTree)_grammars[goal.Node];
+			if (!Grammars.ContainsKey(goal.Node)) return false;
+			AttrTree cls = Grammars[goal.Node];
 			// parse it
-			foreach (IAttrTree clause in cls)
+			foreach (AttrTree clause in cls)
 			{
 				// concatenate clause and the rest of target (after goal) to the new tree
-				IAttrTree temp_targ = new AttrTree(clause);
+				AttrTree temp_targ = new AttrTree(clause);
 				for (int j = tit; j < targ.Count; j++) temp_targ.Add(targ[j]);
 				// try to match
 				int temp_pit = i_patt;
 				if (_Match(temp_targ, 0, patt, ref temp_pit, ref result))
 				{
 					// create subtree
-					ISemTree subtree = new SemTree(cls.Node, clause.Attr);
+					SemTree subtree = new SemTree(cls.Node, clause.Attributes);
 					// move nodes to subtree
-					foreach (AttrTree c in clause)
+					foreach (var c in clause)
 					{
 						if (result.Count == 0) break;
-						IAttrTree p = (IAttrTree)result[0];
+						AttrTree p = result[0];
 						if (p.Node != c.Node) continue;	// ignore skipped optionals
 						subtree.Add(p);
 						result.RemoveAt(0);
@@ -128,11 +116,11 @@ namespace Eliza.Net
 			return false;
 		}
 
-		public bool PartialParse(IAttrTree g, string[] words, ref ArrayList result)
+		public bool PartialParse(AttrTree g, string[] words, ref List<string> result)
 		{
 			if (g == null) return false;
 			bool res = false;
-			foreach (IAttrTree c in g)
+			foreach (AttrTree c in g)
 			{
 				int i_patt = 0;
 				if (_PartialMatch(c, 0, words, i_patt, result)) res = true;
@@ -140,15 +128,15 @@ namespace Eliza.Net
 			return res;
 		}
 
-		protected bool _Next(IAttrTree r, int i, ArrayList result)
+		protected bool _Next(AttrTree r, int i, List<string> result)
 		{
 			bool res = false;
 			for (; i < r.Count; i++)
 			{	// loop until not optional
-				IAttrTree g = (IAttrTree)r[i];
-				if (_grammars.Contains(g.Node))
+				AttrTree g = (AttrTree)r[i];
+				if (Grammars.ContainsKey(g.Node))
 				{
-					foreach (IAttrTree alt in (IAttrTree)_grammars[g.Node])
+					foreach (AttrTree alt in (AttrTree)Grammars[g.Node])
 					{
 						if (_Next(alt, 0, result)) res = true;
 					}
@@ -158,21 +146,20 @@ namespace Eliza.Net
 					if (!result.Contains(g.Node)) result.Add(g.Node);
 					res = true;
 				}
-				if (!g.Optional) break;
+				if (!g.IsOptional) break;
 			}
 			return res;
 		}
 
-		protected void Merge(ArrayList a, ArrayList list)
+		protected void Merge(List<string> a, List<string> list)
 		{
-			foreach (object o in a)
+			foreach (var o in a)
 			{
-				//Console.WriteLine(o);
 				if (!list.Contains(o)) list.Add(o);
 			}
 		}
 
-		protected bool _PartialMatch(IAttrTree targ, int i_targ, string[] patt, int i_patt, ArrayList result)
+		protected bool _PartialMatch(AttrTree targ, int i_targ, string[] patt, int i_patt, List<string> result)
 		{
 			bool pend = patt.Length <= i_patt;
 			if (targ.Count <= i_targ) return pend;
@@ -180,22 +167,22 @@ namespace Eliza.Net
 			{
 				return _Next(targ, i_targ, result);
 			}
-			IAttrTree goal = (IAttrTree)targ[i_targ++];
+			AttrTree goal = (AttrTree)targ[i_targ++];
 			string word = patt[i_patt];
 			// word
 			if (goal.Node.Equals(word))
 			{
 				return _PartialMatch(targ, i_targ, patt, i_patt + 1, result);
 			}
-			bool res = goal.Optional && _PartialMatch(targ, i_targ, patt, i_patt, result);
+			bool res = goal.IsOptional && _PartialMatch(targ, i_targ, patt, i_patt, result);
 			// grammar
-			if (!_grammars.Contains(goal.Node)) return false;
-			IAttrTree grm = (IAttrTree)_grammars[goal.Node];
+			if (!Grammars.ContainsKey(goal.Node)) return false;
+			AttrTree grm = (AttrTree)Grammars[goal.Node];
 			// parse all the alternatives
-			foreach (IAttrTree alt in grm)
+			foreach (AttrTree alt in grm)
 			{
 				// concatenate clause and the rest of target (after goal) to the new tree
-				IAttrTree temp_targ = new AttrTree(alt);
+				AttrTree temp_targ = new AttrTree(alt);
 				for (int j = i_targ; j < targ.Count; j++) temp_targ.Add(targ[j]);
 				// try to match
 				if (_PartialMatch(temp_targ, 0, patt, i_patt, result)) res = true;
