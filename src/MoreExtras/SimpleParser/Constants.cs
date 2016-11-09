@@ -1,12 +1,14 @@
-namespace MoreExtras.Parser
+namespace MoreExtras.SimpleParser
 {
     public static class Constants
     {
         public static class Semantics
         {
-            public static string ALIAS = "alias";
-            public static string VALUE = "value";
-            public static string OPRTR = "op";
+            public const string ALIAS = "alias";
+            public const string VALUE = "value";
+            public const string OPRTR = "op";
+            public const string NUMBER = "number";
+            public const string STRING = "string";
         }
         public static class Grammar
         {

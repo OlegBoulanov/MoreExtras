@@ -1,6 +1,6 @@
 using System.IO;
 
-using MoreExtras.Parser;
+using MoreExtras.SimpleParser;
 using FluentAssertions;
 
 using Xunit;

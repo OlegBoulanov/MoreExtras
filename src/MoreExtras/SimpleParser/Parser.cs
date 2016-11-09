@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace MoreExtras.Parser
+namespace MoreExtras.SimpleParser
 {
 	public class Parser
 	{

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace MoreExtras.Parser
+namespace MoreExtras.SimpleParser
 {
 
 	public class SemTree : AttrTree
@@ -46,11 +46,11 @@ namespace MoreExtras.Parser
 			string op = null, nv = "";
 			switch (cat)
 			{
-				case "number":
+				case Constants.Semantics.NUMBER:
 					op = null;
 					nv = "0";
 					break;
-				case "string":
+				case Constants.Semantics.STRING:
 					op = " ";
 					nv = null;
 					break;
