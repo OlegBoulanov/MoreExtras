@@ -1,7 +1,7 @@
 using MoreExtras.Utils;
 using FluentAssertions;
 
-namespace MoreExtras.Tests
+namespace MoreExtras.Tests.Utils
 {
     public class StringExtensionTests
     {

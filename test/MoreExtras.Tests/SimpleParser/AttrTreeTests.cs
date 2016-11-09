@@ -5,7 +5,7 @@ using FluentAssertions;
 
 using Xunit;
 
-namespace MoreExtras.Tests
+namespace MoreExtras.Tests.SimpleParser
 {
     public class AttrTreeTests
     {

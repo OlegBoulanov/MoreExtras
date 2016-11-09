@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace MoreExtras.Utils
 {
     public static class StringExtensions
