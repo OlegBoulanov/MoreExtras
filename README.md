@@ -21,4 +21,5 @@ Removing .vscode from git:
 - update .gitignore
 - git rm --cached .
 - git push origin master
+
 Done, easy and clean
