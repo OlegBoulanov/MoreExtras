@@ -11,6 +11,11 @@ Although, running in VS Code, it only indicates pass/fail, with no error message
 Running it with dotnet test displays them all in full beauty (or none, if tests passed)
 ... hmm, xunit output seem to be the same in VS Code?
 
+Build:
+- dotnet build **/project.json
+Test:
+- dotnet test test/MoreExtras.Tests/
+
 Removing .vscode from git:
 - update .gitignore
 - git rm --cached .
