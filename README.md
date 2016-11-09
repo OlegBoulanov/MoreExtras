@@ -13,6 +13,7 @@ Running it with dotnet test displays them all in full beauty (or none, if tests 
 
 Build:
 - dotnet build **/project.json
+
 Test:
 - dotnet test test/MoreExtras.Tests/
 
