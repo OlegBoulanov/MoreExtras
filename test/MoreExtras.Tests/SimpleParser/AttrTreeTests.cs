@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 using MoreExtras.SimpleParser;
@@ -35,5 +36,26 @@ namespace MoreExtras.Tests.SimpleParser
             at[0].Attributes[0][0].Attributes.Should().BeNull();
 
         }
+
+        [Fact]
+        public void TestFileRead()
+        {
+            var grammar = new SemTree();
+            FileStream fs = null;
+            try { fs = new FileStream("grammars/sample.sg", FileMode.Open); grammar.Read(new StreamReader(fs));}
+            catch(FileNotFoundException){ true.Should().BeFalse();}return;
+            
+            System.Console.WriteLine($"grams: {grammar.Count}");
+            grammar.Count.Should().Be(8);
+return;
+            Parser parser = null;
+            try { parser = new Parser(); parser.Prepare(grammar); } catch(Exception) {}
+            
+            parser.Lexicon.Count.Should().Be(25);
+            Assert.True(25 == parser.Lexicon.Count);
+            parser = null;
+            grammar = null;
+        }
+
     }
 }
