@@ -42,6 +42,7 @@ namespace MoreExtras.Tests.SimpleParser
         {
             var grammar = new SemTree();
             FileStream fs = null;
+            // why does the next line fail in vs code, but passes in cmd line?
             try { fs = new FileStream("grammars/sample.sg", FileMode.Open); grammar.Read(new StreamReader(fs));}
             catch(FileNotFoundException){ true.Should().BeFalse();}return;
             

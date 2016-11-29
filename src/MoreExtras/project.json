@@ -10,7 +10,8 @@
     "AWSSDK.SQS": "3.3.0.1",
     "Telegram.Bot": "10.4.0",
     "MongoDB.Driver": "2.3.0",
-    "Sprache": "2.1.0"
+    "Sprache": "2.1.0",
+    "Stateless":"3.0.0"
   },
   "frameworks": {
     "netcoreapp1.0": {
