@@ -42,13 +42,14 @@ namespace MoreExtras.Tests.SimpleParser
         {
             var grammar = new SemTree();
             FileStream fs = null;
+            var cd = Directory.GetCurrentDirectory();
+            System.Console.WriteLine($"pwd: {cd}");
             // why does the next line fail in vs code, but passes in cmd line?
-            try { fs = new FileStream("grammars/sample.sg", FileMode.Open); grammar.Read(new StreamReader(fs));}
-            catch(FileNotFoundException){ true.Should().BeFalse();}return;
-            
+            fs = new FileStream("../../grammars/sample.sg", FileMode.Open); grammar.Read(new StreamReader(fs));
+            //true.Should().BeFalse();
             System.Console.WriteLine($"grams: {grammar.Count}");
             grammar.Count.Should().Be(8);
-return;
+
             Parser parser = null;
             try { parser = new Parser(); parser.Prepare(grammar); } catch(Exception) {}
             
